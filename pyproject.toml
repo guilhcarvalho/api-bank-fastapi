@@ -8,7 +8,9 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.14,<4.0"
 dependencies = [
-    "fastapi[standard] (>=0.136.3,<0.137.0)"
+    "fastapi[standard] (>=0.136.3,<0.137.0)",
+    "sqlalchemy (>=2.0.50,<3.0.0)",
+    "databases[aiosqlite] (>=0.9.0,<0.10.0)"
 ]
 
 
@@ -46,11 +48,10 @@ addopts = '-p no:warnings'
 
 
 [tool.taskipy.tasks]
-
 lint = 'ruff check'
 pre_format = 'ruff check --fix'
 format = 'ruff format'
-run = 'fastapi dev api_bancaria_fastapi/main.py'
+run = 'fastapi dev src/main.py'
 pre_test = 'task lint'
-test = 'pytest -s -x --cov=api_bancaria_fastapi -vv'
-post_test = 'coverage html'
+test = 'pytest -s -x -vv'
+post_test = 'coverage html --show-contexts'

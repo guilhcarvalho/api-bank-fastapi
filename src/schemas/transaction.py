@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, PositiveFloat
 
 
 class TransactionType(Enum):
@@ -10,9 +10,9 @@ class TransactionType(Enum):
 
 
 class TransactionIn(BaseModel):
-    account: int
+    account_id: int
     type: TransactionType
-    amount: int
+    amount: PositiveFloat
     currency: str
     timestamp: datetime
 
