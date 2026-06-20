@@ -6,16 +6,15 @@ from fastapi import FastAPI
 
 import src.models  # noqa: F401
 from src.controllers import account
-from src.database import database, engine, metadata
+from src.database import engine, get_session
 from src.schemas.transaction import TransactionIn
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    metadata.create_all(engine)
-    await database.connect()
+    async with engine.begin() as conn:
+        await conn.run_sync(get_session.create_all)
     yield
-    await database.disconnect()
 
 
 app = FastAPI(lifespan=lifespan, title='Bank API FastAPI')

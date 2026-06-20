@@ -1,13 +1,17 @@
-import sqlalchemy as sa
+from datetime import datetime
 
-from src.database import metadata
+from sqlalchemy import func
+from sqlalchemy.orm import Mapped, mapped_as_dataclass, mapped_column
 
-accounts = sa.Table(
-    'accounts',
-    metadata,
-    sa.Column('user_id', sa.Integer, primary_key=True),
-    sa.Column('balance', sa.Numeric(10, 2), nullable=False, default=0),
-    sa.Column(
-        'created_at', sa.TIMESTAMP(timezone=True), default=sa.func.now()
-    ),
-)
+from src.database import table_registry
+
+
+@mapped_as_dataclass(table_registry)
+class Account:
+    __tablename__ = 'accounts'
+
+    id: Mapped[int] = mapped_column(init=False, primary_key=True)
+    balance: Mapped[float]
+    created_at: Mapped[datetime] = mapped_column(
+        init=False, server_default=func.now()
+    )

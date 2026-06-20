@@ -1,15 +1,13 @@
-import os
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import registry
 
-import databases
-import sqlalchemy as sa
-from dotenv import load_dotenv
+from src.settings import Settings
 
-load_dotenv()
+engine = create_async_engine(Settings().DATABASE_URL)
 
-database = databases.Database(os.getenv('DATABASE_URL'))
+table_registry = registry()
 
-metadata = sa.MetaData()
 
-engine = sa.create_engine(
-    os.getenv('DATABASE_URL'), connect_args={'check_same_thread': False}
-)
+async def get_session():
+    async with AsyncSession(engine, expire_on_commit=False) as session:
+        yield session
