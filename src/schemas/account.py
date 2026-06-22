@@ -1,6 +1,10 @@
 from datetime import datetime
 
-from pydantic import BaseModel, PositiveFloat
+from pydantic import BaseModel, ConfigDict, PositiveFloat
+
+
+class Message(BaseModel):
+    message: str
 
 
 class AccountIn(BaseModel):
@@ -8,6 +12,12 @@ class AccountIn(BaseModel):
 
 
 class AccountOut(BaseModel):
-    user_id: int
+    id: int
     balance: PositiveFloat
     created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AccountList(BaseModel):
+    accounts: list[AccountOut]

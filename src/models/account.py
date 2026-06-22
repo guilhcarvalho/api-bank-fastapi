@@ -1,12 +1,12 @@
 from datetime import datetime
 
 from sqlalchemy import func
-from sqlalchemy.orm import Mapped, mapped_as_dataclass, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.database import table_registry
 
 
-@mapped_as_dataclass(table_registry)
+@table_registry.mapped_as_dataclass
 class Account:
     __tablename__ = 'accounts'
 
@@ -14,4 +14,7 @@ class Account:
     balance: Mapped[float]
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        init=False, server_default=func.now(), onupdate=func.now()
     )

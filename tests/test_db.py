@@ -20,4 +20,5 @@ def test_create_user(session, mock_db_time):
             'id': 1,
             'balance': BALANCE,
             'created_at': time,
+            'updated_at': time,
         }

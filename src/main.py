@@ -6,14 +6,14 @@ from fastapi import FastAPI
 
 import src.models  # noqa: F401
 from src.controllers import account
-from src.database import engine, get_session
+from src.database import engine, table_registry
 from src.schemas.transaction import TransactionIn
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
-        await conn.run_sync(get_session.create_all)
+        await conn.run_sync(table_registry.metadata.create_all)
     yield
 
 
