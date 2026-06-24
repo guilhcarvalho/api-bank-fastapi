@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, PositiveFloat
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class Message(BaseModel):
@@ -8,12 +8,15 @@ class Message(BaseModel):
 
 
 class AccountIn(BaseModel):
-    balance: PositiveFloat
+    user: str
+    email: EmailStr
+    password: str
 
 
 class AccountOut(BaseModel):
     id: int
-    balance: PositiveFloat
+    user: str
+    email: EmailStr
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)
