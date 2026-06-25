@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import func, UniqueConstraint
+from sqlalchemy import UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.database import table_registry
@@ -17,7 +17,7 @@ class Account:
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
     user: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str] = mapped_column(nullable=False)
-    password: Mapped[str]
+    password: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )
