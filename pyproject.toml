@@ -50,7 +50,7 @@ quote-style = 'single'
 
 [tool.pytest]
 pythonpath = ['.']
-addopts = ['-p', 'no:warnings', '--cov=api-bancaria-fastapi', '--cov-context=test', '--cov-branch', '--random-order']
+addopts = ['-p', 'no:warnings', '--cov=src', '--cov-context=test', '--cov-branch', '--random-order']
 asyncio_default_fixture_loop_scope = 'function'
 
 
@@ -62,3 +62,7 @@ run = 'fastapi dev src/main.py'
 pre_test = 'task lint'
 test = 'pytest -s -x -vv --cov=src'
 post_test = 'coverage html --show-contexts'
+
+
+[tool.coverage.run]
+concurrency = ["thread", "greenlet"]
