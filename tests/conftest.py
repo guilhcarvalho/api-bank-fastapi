@@ -2,13 +2,10 @@ from contextlib import contextmanager
 from datetime import datetime
 
 import pytest
-
-# import pytest_asyncio
+import pytest_asyncio
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import Session
-
-# from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy import event
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 import src.models  # noqa: F401
@@ -17,20 +14,21 @@ from src.main import app
 from src.models.account import Account
 
 
-@pytest.fixture
-def session():
-    engine = create_engine(
-        'sqlite:///:memory:',
+@pytest_asyncio.fixture
+async def session():
+    engine = create_async_engine(
+        'sqlite+aiosqlite:///:memory:',
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
-    table_registry.metadata.create_all(engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(table_registry.metadata.create_all)
 
-    with Session(engine) as session:
+    async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session
 
-    table_registry.metadata.drop_all(engine)
-    engine.dispose()
+    async with engine.begin() as conn:
+        await conn.run_sync(table_registry.metadata.drop_all)
 
 
 @pytest.fixture
@@ -45,30 +43,17 @@ def client(session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture
-def account(session):
-    account = Account(balance=100)
-    session.add(account)
-    session.commit()
-    session.refresh(account)
-    return account
-
-
-"""@pytest_asyncio.fixture
-async def session():
-    engine = create_async_engine(
-        'sqlite+aiosqlite:///:memory:',
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
+@pytest_asyncio.fixture
+async def account(session: AsyncSession):
+    account = Account(
+        user='test',
+        email='test@api-banktest.com',
+        password='supersecrettest',
     )
-    async with engine.begin() as conn:
-        await conn.run_sync(table_registry.metadata.create_all)
-
-    async with AsyncSession(engine, expire_on_commit=False) as session:
-        yield session
-
-    async with engine.begin() as conn:
-        await conn.run_sync(table_registry.metadata.drop_all)"""
+    session.add(account)
+    await session.commit()
+    await session.refresh(account)
+    return account
 
 
 @contextmanager
