@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from src.database import get_session
 from src.models.account import Account
 from src.schemas.account import AccountIn, AccountList, AccountOut
+from src.security import get_current_user, get_password_hash
 
 router = APIRouter(prefix='/accounts')
 
@@ -60,8 +61,11 @@ async def create_account(
             raise HTTPException(
                 status_code=HTTPStatus.CONFLICT, detail='Email already exists.'
             )
+
+    hashed_password = get_password_hash(post.password)
+
     db_account = Account(
-        user=post.user, email=post.email, password=post.password
+        user=post.user, email=post.email, password=hashed_password
     )
 
     session.add(db_account)
@@ -80,27 +84,28 @@ async def update_account(
     account_user: str,
     put: AccountIn,
     session: Session = Depends(get_session),
+    current_user: Account = Depends(get_current_user),
 ):
-    db_account = await session.scalar(
-        select(Account).where(Account.user == account_user)
-    )
-    if not db_account:
+    if current_user.user != account_user:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Account not found'
+            status_code=HTTPStatus.FORBIDDEN,
+            detail='not enough permissions',
         )
-    db_account.user = put.user
-    db_account.password = put.password
-    db_account.email = put.email
+
     try:
+        current_user.user = put.user
+        current_user.password = get_password_hash(put.password)
+        current_user.email = put.email
         await session.commit()
-        await session.refresh(db_account)
+        await session.refresh(current_user)
+        return current_user
+
     except IntegrityError:
         await session.rollback()
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
             detail='User or Email already exists',
         )
-    return db_account
 
 
 # Delete users
@@ -109,15 +114,15 @@ async def update_account(
     status_code=HTTPStatus.OK,
 )
 async def delete_account(
-    account_user: str, session: Session = Depends(get_session)
+    account_user: str,
+    session: Session = Depends(get_session),
+    current_user: Account = Depends(get_current_user),
 ):
-    db_account = await session.scalar(
-        select(Account).where(Account.user == account_user)
-    )
-    if not db_account:
+    if current_user.user != account_user:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Account not found'
+            status_code=HTTPStatus.FORBIDDEN,
+            detail='not enough permissions',
         )
-    session.delete(db_account)
+    session.delete(current_user)
     await session.commit()
     return {'message': 'Account deleted'}

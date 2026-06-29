@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 import src.models  # noqa: F401
-from src.controllers import account
+from src.controllers import account, auth
 from src.database import engine, table_registry
 
 
@@ -18,3 +18,4 @@ app = FastAPI(lifespan=lifespan, title='Bank API FastAPI')
 
 
 app.include_router(account.router, tags=['account'])
+app.include_router(auth.router, tags=['auth'])

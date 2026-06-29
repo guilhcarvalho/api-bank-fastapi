@@ -16,7 +16,6 @@ def test_create_account(client):
     assert response.json() == {
         'user': 'test',
         'email': 'test@api-banktest.com',
-        'password': 'supersecrettest',
         'created_at': response.json()['created_at'],
         'updated_at': response.json()['updated_at'],
     }
@@ -34,26 +33,26 @@ def test_read_accounts_with_fixture(client, account):
     assert response.json() == {'accounts': [account_schema]}
 
 
-def test_update_user(client, account):
+def test_update_user(client, account, token):
     response = client.put(
         f'/accounts/{account.user}',
+        headers={'Authorization': f'Bearer {token}'},
         json={
-            'user': 'testUpdate',
+            'user': account.user,
             'email': 'testUpdate@api-banktest.com',
             'password': 'supersecrettest',
         },
     )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        'user': 'testUpdate',
+        'user': account.user,
         'email': 'testUpdate@api-banktest.com',
-        'password': 'supersecrettest',
         'created_at': response.json()['created_at'],
         'updated_at': response.json()['updated_at'],
     }
 
 
-def test_integrity_error(client, account):
+def test_update_integrity_error(client, account, token):
     client.post(
         '/accounts/',
         json={
@@ -64,8 +63,9 @@ def test_integrity_error(client, account):
     )
     response_update = client.put(
         f'/accounts/{account.user}',
+        headers={'Authorization': f'Bearer {token}'},
         json={
-            'user': 'testIntegrity',
+            'user': account.user,
             'email': 'testIntegrity@api-banktest.com',
             'password': 'supersecrettest',
         },
@@ -74,7 +74,10 @@ def test_integrity_error(client, account):
     assert response_update.json() == {'detail': 'User or Email already exists'}
 
 
-def test_delete_test(client, account):
-    response = client.delete(f'/accounts/{account.user}')
+def test_delete_account(client, account, token):
+    response = client.delete(
+        f'/accounts/{account.user}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'Account deleted'}

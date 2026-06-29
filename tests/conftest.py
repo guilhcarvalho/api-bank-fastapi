@@ -12,6 +12,7 @@ import src.models  # noqa: F401
 from src.database import get_session, table_registry
 from src.main import app
 from src.models.account import Account
+from src.security import get_password_hash
 
 
 @pytest_asyncio.fixture
@@ -45,14 +46,17 @@ def client(session):
 
 @pytest_asyncio.fixture
 async def account(session: AsyncSession):
+    password = 'supersecrettest'
     account = Account(
         user='test',
         email='test@api-banktest.com',
-        password='supersecrettest',
+        password=get_password_hash(password),
     )
     session.add(account)
     await session.commit()
     await session.refresh(account)
+    account.clean_password = password
+
     return account
 
 
@@ -75,3 +79,12 @@ def _mock_db_time(*, model, time=datetime(2026, 1, 1)):
 @pytest.fixture
 def mock_db_time():
     return _mock_db_time
+
+
+@pytest.fixture
+def token(client, account):
+    response = client.post(
+        '/auth/',
+        data={'username': account.email, 'password': account.clean_password},
+    )
+    return response.json()['access_token']
