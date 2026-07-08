@@ -89,7 +89,7 @@ async def update_account(
     if current_user.user != account_user:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
-            detail='not enough permissions',
+            detail='Not enough permissions',
         )
 
     try:
@@ -121,7 +121,7 @@ async def delete_account(
     if current_user.user != account_user:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
-            detail='not enough permissions',
+            detail='Not enough permissions',
         )
     session.delete(current_user)
     await session.commit()

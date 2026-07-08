@@ -52,20 +52,12 @@ def test_update_user(client, account, token):
     }
 
 
-def test_update_integrity_error(client, account, token):
-    client.post(
-        '/accounts/',
-        json={
-            'user': 'testIntegrity',
-            'email': 'testIntegrity@api-banktest.com',
-            'password': 'supersecrettest',
-        },
-    )
+def test_update_integrity_error(client, account, other_account, token):
     response_update = client.put(
         f'/accounts/{account.user}',
         headers={'Authorization': f'Bearer {token}'},
         json={
-            'user': account.user,
+            'user': other_account.user,
             'email': 'testIntegrity@api-banktest.com',
             'password': 'supersecrettest',
         },
@@ -81,3 +73,26 @@ def test_delete_account(client, account, token):
     )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'Account deleted'}
+
+
+def test_update_account_with_wrong_account(client, other_account, token):
+    response = client.put(
+        f'/accounts/{other_account.user + "usertest"}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'user': 'Joao',
+            'email': 'testUpdate@api-banktest.com',
+            'password': 'supersecrettest',
+        },
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {'detail': 'Not enough permissions'}
+
+
+def test_delete_account_wrong_acount(client, other_account, token):
+    response = client.delete(
+        f'/accounts/{other_account.user}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {'detail': 'Not enough permissions'}
