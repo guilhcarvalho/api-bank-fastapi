@@ -42,9 +42,8 @@ def verify_password(
 
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl='/auth/',
-    refreshUrl='/auth/refresh'
-    )
+    tokenUrl='/auth/', refreshUrl='/auth/refresh'
+)
 
 
 async def get_current_user(
