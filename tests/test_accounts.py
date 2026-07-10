@@ -21,16 +21,17 @@ def test_create_account(client):
     }
 
 
-def test_read_accounts(client):
-    response = client.get('/accounts/')
-    assert response.status_code == HTTPStatus.OK
-    assert response.json() == {'accounts': []}
-
-
 def test_read_accounts_with_fixture(client, account):
     account_schema = AccountOut.model_validate(account).model_dump(mode='json')
     response = client.get('/accounts/')
     assert response.json() == {'accounts': [account_schema]}
+
+
+def test_read_account(client, account):
+    account_schema = AccountOut.model_validate(account).model_dump(mode='json')
+    response = client.get('/accounts/user')
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == account_schema
 
 
 def test_update_user(client, account, token):
@@ -96,3 +97,31 @@ def test_delete_account_wrong_acount(client, other_account, token):
     )
     assert response.status_code == HTTPStatus.FORBIDDEN
     assert response.json() == {'detail': 'Not enough permissions'}
+
+
+def test_integrity_error_create_account_email(client, other_account, token):
+    response_create = client.post(
+        '/accounts/',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'user': 'TesteIntegrityAccount',
+            'email': other_account.email,
+            'password': 'supersecrettest',
+        },
+    )
+    assert response_create.status_code == HTTPStatus.CONFLICT
+    assert response_create.json() == {'detail': 'Email already exists.'}
+
+
+def test_error_create_account_user(client, other_account, token):
+    response_create = client.post(
+        '/accounts/',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'user': other_account.user,
+            'email': 'testeintegrity@teste.com',
+            'password': 'supersecrettest',
+        },
+    )
+    assert response_create.status_code == HTTPStatus.CONFLICT
+    assert response_create.json() == {'detail': 'User already exists'}
