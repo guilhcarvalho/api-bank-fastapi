@@ -10,7 +10,7 @@ class TransactionType(Enum):
 
 
 class TransactionIn(BaseModel):
-    account_id: int
+    account_user: str
     type: TransactionType
     amount: PositiveFloat
     currency: str

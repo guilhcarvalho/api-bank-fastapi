@@ -4,6 +4,7 @@ from datetime import datetime
 import factory
 import pytest
 import pytest_asyncio
+from factory import fuzzy
 from fastapi.testclient import TestClient
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -13,6 +14,7 @@ import src.models  # noqa: F401
 from src.database import get_session, table_registry
 from src.main import app
 from src.models.account import Account
+from src.models.transaction import Transaction, TransactionType
 from src.security import get_password_hash
 
 
@@ -58,6 +60,16 @@ async def account(session: AsyncSession):
 
 
 @pytest_asyncio.fixture
+async def transaction(session: AsyncSession, account):
+    transaction = TransactionFactory(account_user=account.user)
+    session.add(transaction)
+    await session.commit()
+    await session.refresh(transaction)
+
+    return transaction
+
+
+@pytest_asyncio.fixture
 async def other_account(session: AsyncSession):
     password = 'supersecrettest'
     account = UserFactory(password=get_password_hash(password))
@@ -73,10 +85,10 @@ async def other_account(session: AsyncSession):
 def _mock_db_time(*, model, time=datetime(2026, 1, 1)):
 
     def fake_time_hook(mapper, connection, target):
-        if hasattr(target, 'created_at'):
-            target.created_at = time
-        if hasattr(target, 'updated_at'):
-            target.updated_at = time
+        if isinstance(target, model):
+            for field in ('created_at', 'updated_at', 'timestamp'):
+                if hasattr(target, field):
+                    setattr(target, field, time)
 
     event.listen(model, 'before_insert', fake_time_hook)
 
@@ -106,3 +118,13 @@ class UserFactory(factory.Factory):
     user = factory.Sequence(lambda n: f'test{n}')
     email = factory.LazyAttribute(lambda obj: f'{obj.user}@test.com')
     password = factory.LazyAttribute(lambda obj: f'{obj.user}@example.com')
+
+
+class TransactionFactory(factory.Factory):
+    class Meta:
+        model = Transaction
+
+    account_user = factory.Sequence(lambda n: f'test{n}')
+    type = fuzzy.FuzzyChoice(TransactionType)
+    amount = fuzzy.FuzzyFloat(0.0, 1000.0)
+    currency = 'BRL'

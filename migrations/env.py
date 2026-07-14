@@ -9,6 +9,7 @@ from alembic import context
 from src.database import table_registry
 from src.settings import Settings
 from src.models.account import Account  # noqa: F401
+from src.models.transaction import Transaction  # noqa: F401
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

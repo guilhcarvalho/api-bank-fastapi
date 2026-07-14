@@ -1,9 +1,13 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import UniqueConstraint, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import table_registry
+
+if TYPE_CHECKING:
+    from src.models.transaction import Transaction
 
 
 @table_registry.mapped_as_dataclass
@@ -23,4 +27,7 @@ class Account:
     )
     updated_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now(), onupdate=func.now()
+    )
+    transactions: Mapped[list['Transaction']] = relationship(
+        back_populates='account', init=False, default_factory=list
     )
