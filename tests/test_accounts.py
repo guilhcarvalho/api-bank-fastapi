@@ -29,7 +29,7 @@ def test_read_accounts_with_fixture(client, account):
 
 def test_read_account(client, account):
     account_schema = AccountOut.model_validate(account).model_dump(mode='json')
-    response = client.get('/accounts/user')
+    response = client.get(f'/accounts/{account.user}')
     assert response.status_code == HTTPStatus.OK
     assert response.json() == account_schema
 
