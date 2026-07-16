@@ -39,7 +39,6 @@ def test_update_user(client, account, token):
         f'/accounts/{account.user}',
         headers={'Authorization': f'Bearer {token}'},
         json={
-            'user': account.user,
             'email': 'testUpdate@api-banktest.com',
             'password': 'supersecrettest',
         },
@@ -58,13 +57,12 @@ def test_update_integrity_error(client, account, other_account, token):
         f'/accounts/{account.user}',
         headers={'Authorization': f'Bearer {token}'},
         json={
-            'user': other_account.user,
-            'email': 'testIntegrity@api-banktest.com',
+            'email': other_account.email,
             'password': 'supersecrettest',
         },
     )
     assert response_update.status_code == HTTPStatus.CONFLICT
-    assert response_update.json() == {'detail': 'User or Email already exists'}
+    assert response_update.json() == {'detail': 'Email already exists'}
 
 
 def test_delete_account(client, account, token):

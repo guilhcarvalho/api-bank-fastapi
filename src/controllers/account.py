@@ -7,7 +7,12 @@ from sqlalchemy.orm import Session
 
 from src.database import get_session
 from src.models.account import Account
-from src.schemas.account import AccountIn, AccountList, AccountOut
+from src.schemas.account import (
+    AccountIn,
+    AccountList,
+    AccountOut,
+    AccountUpdate,
+)
 from src.security import get_current_user, get_password_hash
 
 router = APIRouter(prefix='/accounts')
@@ -90,7 +95,7 @@ async def create_account(
 )
 async def update_account(
     account_user: str,
-    put: AccountIn,
+    put: AccountUpdate,
     session: Session = Depends(get_session),
     current_user: Account = Depends(get_current_user),
 ):
@@ -101,7 +106,6 @@ async def update_account(
         )
 
     try:
-        current_user.user = put.user
         current_user.password = get_password_hash(put.password)
         current_user.email = put.email
         await session.commit()
@@ -112,7 +116,7 @@ async def update_account(
         await session.rollback()
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
-            detail='User or Email already exists',
+            detail='Email already exists',
         )
 
 

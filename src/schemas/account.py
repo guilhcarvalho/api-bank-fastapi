@@ -13,6 +13,11 @@ class AccountIn(BaseModel):
     password: str
 
 
+class AccountUpdate(BaseModel):
+    email: EmailStr
+    password: str
+
+
 class AccountOut(BaseModel):
     user: str
     email: EmailStr
