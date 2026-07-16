@@ -12,11 +12,24 @@ if TYPE_CHECKING:
     from src.models.account import Account
 
 
+import random
+
+
+def generate_transaction_number():
+    return random.randint(100_000_000, 999_999_999)
+
+
 @table_registry.mapped_as_dataclass
 class Transaction:
     __tablename__ = 'transactions'
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
+    transaction_number: Mapped[int] = mapped_column(
+        init=False,
+        unique=True,
+        nullable=False,
+        default=generate_transaction_number,
+    )
     account_user: Mapped[str] = mapped_column(ForeignKey('accounts.user'))
     type: Mapped[TransactionType] = mapped_column(
         SQLEnum(

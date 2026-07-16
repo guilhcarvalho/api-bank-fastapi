@@ -35,9 +35,9 @@ async def read_accounts(
 async def read_account(
     account_user: str, session: Session = Depends(get_session)
 ):
-    query = await session.scalar(select(Account).where(
-        Account.user == account_user
-    ))
+    query = await session.scalar(
+        select(Account).where(Account.user == account_user)
+    )
     if query is None:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Account not found'
