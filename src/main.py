@@ -1,21 +1,15 @@
-from contextlib import asynccontextmanager
+import asyncio
+import sys
 
 from fastapi import FastAPI
 
 import src.models  # noqa: F401
 from src.controllers import account, auth, transaction
-from src.database import engine, table_registry
 
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(table_registry.metadata.create_all)
-    yield
-
-
-app = FastAPI(lifespan=lifespan, title='Bank API FastAPI')
-
+app = FastAPI(title='Bank API FastAPI')
 
 app.include_router(account.router, tags=['account'])
 app.include_router(auth.router, tags=['auth'])
